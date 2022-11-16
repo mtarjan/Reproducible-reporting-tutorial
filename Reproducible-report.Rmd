@@ -17,6 +17,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Load packages
 library(tidyverse)
+
+## Function to create a list of character strings with oxford comma
+devtools::source_url("https://raw.githubusercontent.com/mtarjan/Reproducible-reporting-tutorial/main/function-oxfordcomma.R")
 ```
 
 ```{r, echo=FALSE, warning=FALSE, include=FALSE}
@@ -29,13 +32,6 @@ table.num<-1
 
 ## Read in the data to be used in the report
 dat <- read.csv("data/primary-subset-global-2022-11-16.csv")
-
-## Function to create a list of character strings with oxford comma
-oxford.comma <- function(x) {
-  y <- paste0(x[1:(length(x)-1)], collapse = ", ")
-  y <- paste0(c(y, x[length(x)]), collapse = ", and ")
-  y
-}
 ```
 
 ```{=openxml}
