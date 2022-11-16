@@ -1,0 +1,99 @@
+---
+title: "Reproducible Reporting from Central Biotics"
+author: "Max Tarjan"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  #powerpoint_presentation:
+      #reference_doc: "Presentation Template.pptx"
+      #fig_caption: yes
+  word_document:
+      fig_caption: yes
+      reference_doc: "Word-template.docx"
+      toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## Load packages
+library(tidyverse)
+```
+
+```{r, echo=FALSE, warning=FALSE, include=FALSE}
+## Set the initial numbers for figure and table captions
+figure.num<-0
+table.num<-1
+
+## Run the Biotics query by sourcing the code file. Currently commented out because it takes time to run
+#source("Query-Biotics.R")
+
+## Read in the data to be used in the report
+dat <- read.csv("data/primary-subset-global-2022-11-16.csv")
+
+## Function to create a list of character strings with oxford comma
+oxford.comma <- function(x) {
+  y <- paste0(x[1:(length(x)-1)], collapse = ", ")
+  y <- paste0(c(y, x[length(x)]), collapse = ", and ")
+  y
+}
+```
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
+
+# Background
+
+This report was produced using data from Central Biotics on `r format(Sys.Date(), '%B %d, %Y')`. See NatureServe's [Biotics Help](https://help.natureserve.org/biotics/) for details on the data model.
+
+See [Markdown basics](https://rmarkdown.rstudio.com/authoring_basics.html) for help with syntax in reproducible reports.
+
+# Data Summary
+## Taxonomy
+
+The primary global element dataset contains `r format(nrow(dat), big.mark=",")` elements from `r length(unique(dat$NAME_CATEGORY_DESC))` different taxonomic groups, comprising `r oxford.comma(unique(dat$NAME_CATEGORY_DESC))`.
+
+```{r, echo=FALSE}
+## Wrangle the data to get counts in each taxonomic group
+data.plot <-  table(dat$NAME_CATEGORY_DESC) %>%
+  data.frame() %>%
+  rename("Taxonomic Group" = "Var1", "Count" = "Freq")
+
+## Show the counts in a table
+knitr::kable(data.plot, caption = paste0("Table ", table.num, ". The number of elements in the primary global element dataset in each taxonomic group."))
+
+## Increase the table reference number
+table.num<-table.num+1
+```
+
+## G-Rank
+
+The primary global element dataset has Global Conservation Ranks based on expert ranking.
+
+```{r, echo=FALSE, warning=FALSE, include=FALSE}
+## Wrangle data for a plot
+data.plot <-  subset(dat, !(G_RANK %in% c("GNA/TNA", "GNR/TNR", "GU/TU", "GX/TX", "GH/TH")))$G_RANK %>% 
+  table() %>%
+  data.frame() %>%
+  rename("G Rank" = ".", "Count" = "Freq")
+
+## Create the figure
+fig <- ggplot(data.plot, aes(x = 2, y = Count, fill = `G Rank`)) +
+  geom_bar(stat = "identity", color = "white") +
+  coord_polar(theta = "y", start = 0) +
+  theme_void() +
+  xlim(.9, 2.5) +
+  scale_fill_brewer(palette="Greens", direction = -1) +
+  theme(text = element_text(size = 12), strip.text = element_text(size=12), legend.position="right")
+
+## Write out the figure as png (for control over size, text, resolution, etc)
+png(filename = paste0("data/figure.png"), width = 600, height = 600, res=150)
+fig
+dev.off()
+```
+
+```{r, echo=FALSE, fig.cap= paste0("Figure ", figure.num, ". The frequency of G Ranks in the primary element global dataset.")}
+## Load figure for display in the report
+knitr::include_graphics(path="data/figure.png")
+figure.num<-figure.num+1
+```
