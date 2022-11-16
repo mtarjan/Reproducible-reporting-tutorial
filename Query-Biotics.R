@@ -3,7 +3,6 @@
 ## Nov 16, 2022
 
 ## Load packages
-library(readxl)
 library(tidyverse)
 library(RODBC)
 
